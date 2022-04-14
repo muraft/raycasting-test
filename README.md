@@ -2,8 +2,8 @@ Ray casting is one of a 3d rendering method, this method used by many old 3d gam
 Visit https://en.wikipedia.org/wiki/Ray_casting to learn more about it.
 
 ## My Ray Casting Project
-This is my first ray casting project and it's poorly designed, you will found this problems in this code:
-- My code is hard to understand
+This is my first ray casting project, it's poorly designed and has this problem:
+- The code is hard to understand
 - Player can moves through wall
 - The player speed is not relative to the minimap size
 - Bad shading (or no shading)
