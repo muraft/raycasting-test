@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Raycast Engine Test</title>
+
+  <style type="text/css">
+    *{
+      margin: 0px;
+      padding: 0px;
+    }
+    body{
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="screen" width="100%" height="100%"></canvas>
+
+  <script type="text/javascript">
+    const button = {
+      left: false,
+      up: false,
+      right: false,
+      down: false,
+      faceLeft: false,
+      faceRight: false
+    }
+
+    window.onkeydown=(e) => {
+      switch (e.keyCode) {
+        case 65: //A
+        button.left = true;
+        break;
+        case 87: //W
+        button.up = true;
+        break;
+        case 68: //D
+        button.right = true;
+        break;
+        case 83: //S
+        button.down = true;
+        break;
+        case 81: //Q
+        button.faceLeft = true;
+        break;
+        case 69: //E
+        button.faceRight = true;
+        break;
+      }
+    }
+    window.onkeyup=(e) => {
+      switch (e.keyCode) {
+        case 65: //A
+        button.left = false;
+        break;
+        case 87: //W
+        button.up = false;
+        break;
+        case 68: //D
+        button.right = false;
+        break;
+        case 83: //S
+        button.down = false;
+        break;
+        case 81: //Q
+        button.faceLeft = false;
+        break;
+        case 69: //E
+        button.faceRight = false;
+        break;
+      }
+    }
+
+    const canvas = document.getElementById("screen");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext("2d");
+
+    const MINIMAP_SIZE=100;
+    const map={
+      size: 10,
+      data: [1,1,1,1,1,1,1,1,1,1,
+             1,0,0,1,0,0,0,0,0,1,
+             1,0,0,0,0,0,0,0,0,1,
+             1,0,0,1,0,0,1,0,0,1,
+             1,0,0,1,1,0,0,0,0,1,
+             1,0,0,0,1,0,0,0,0,1,
+             1,0,0,0,0,1,0,0,0,1,
+             1,0,0,0,0,0,0,1,0,1,
+             1,1,0,0,0,0,0,0,0,1,
+             1,1,1,1,1,1,1,1,1,1]
+    }
+    map.scale= MINIMAP_SIZE/map.size
+
+    function toIndex(x,y){
+      return y*map.size + x;
+    }
+    function toRadian(degree){
+      return degree*Math.PI/180
+    }
+
+    const player={
+      x: 1,
+      y: 1,
+      size: map.scale/5,
+      angle: toRadian(90),
+      speed: 2/MINIMAP_SIZE
+    }
+    const graphic={
+      rays: 300,
+      fov: toRadian(45),
+      rayStep: 0.01*map.scale
+    }
+    player.control=()=>{
+      if(button.left){
+        let incrementX=player.speed*Math.cos(player.angle-toRadian(90));
+        let incrementY=player.speed*Math.sin(player.angle-toRadian(90));
+        player.x+=incrementX;
+        player.y+=incrementY;
+      }
+      if(button.up){
+        let incrementX=player.speed*Math.cos(player.angle);
+        let incrementY=player.speed*Math.sin(player.angle);
+        player.x+=incrementX;
+        player.y+=incrementY;
+      }
+      if(button.right){
+        let incrementX=player.speed*Math.cos(player.angle+toRadian(90));
+        let incrementY=player.speed*Math.sin(player.angle+toRadian(90));
+        player.x+=incrementX;
+        player.y+=incrementY;
+      }
+      if(button.down){
+        let incrementX=player.speed*Math.cos(player.angle);
+        let incrementY=player.speed*Math.sin(player.angle);
+        player.x-=incrementX;
+        player.y-=incrementY;
+      }
+      if(button.faceLeft)player.angle-=toRadian(1);
+      if(button.faceRight)player.angle+=toRadian(1);
+    }
+
+    let dt = 0;
+    let lt = 0;
+    let fps = 0;
+    let xPos,yPos;
+    let rayArr = [];
+    function gameLoop(t)
+    {
+      requestAnimationFrame(gameLoop);
+        dt = (t - lt) / 1000;
+        lt = t
+        fps = Math.round(1/dt);
+
+        xPos = player.x*map.scale+player.size;
+        yPos = player.y*map.scale+player.size;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        player.control();
+        render3d(rayArr);
+        drawMinimap();
+        rayArr=castRay();
+
+        ctx.fillStyle="black";
+        ctx.font = "30px Arial";
+        ctx.fillText(fps+" FPS", canvas.width/2, 30);
+    }
+    requestAnimationFrame(gameLoop);
+
+    function castRay(){
+      let currentAngle=player.angle-graphic.fov/2;
+      let step = graphic.fov/graphic.rays;
+      let rayArr=[];
+
+      while(currentAngle<player.angle+graphic.fov)
+      {
+        let rayEndX=xPos;
+        let rayEndY=yPos;
+        let hit=false;
+        let distance = 0;
+        while(!hit){
+          let stepX=graphic.rayStep*Math.cos(currentAngle);
+          let stepY=graphic.rayStep*Math.sin(currentAngle);
+          if(map.data[toIndex(Math.floor((rayEndX+stepX)/map.scale),Math.floor(rayEndY/map.scale))]==1){
+            hit=true;
+            distance=Math.sqrt(Math.pow(rayEndX-xPos,2)+Math.pow(rayEndY-yPos,2))
+            rayArr.push([distance/10,"right"]);
+          }
+          if(map.data[toIndex(Math.floor((rayEndX)/map.scale),Math.floor((rayEndY+stepY)/map.scale))]==1){
+            hit=true;
+            distance=Math.sqrt(Math.pow(rayEndX-xPos,2)+Math.pow(rayEndY-yPos,2))
+            rayArr.push([distance/10,"left"]);
+          }
+          rayEndX+=stepX;
+          rayEndY+=stepY;
+        }
+
+
+        ctx.strokeWidth=10;
+        ctx.strokeStyle="yellow";
+        ctx.beginPath();
+        ctx.moveTo(xPos, yPos);
+        ctx.lineTo(rayEndX,rayEndY);
+        ctx.stroke();
+        ctx.closePath();
+        currentAngle+=step;
+      }
+      return rayArr;
+    }
+
+    function render3d(rays){
+      let width=Math.ceil(canvas.width/rays.length);
+      ctx.fillStyle="gray";
+      ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2)
+      rays.forEach((v,i)=>{
+        ctx.fillStyle=v[1]=="right"?"blue":"darkblue";
+        ctx.fillRect(width*i,canvas.height/2-canvas.height/v[0]/2,width,canvas.height/v[0]);
+      })
+    }
+
+    function drawMinimap(){
+      //Render map
+      for(let x=0;x<map.size;x++){
+        for(let y=0;y<map.size;y++){
+          let index = toIndex(x,y);
+          if(map.data[index]==1){
+            ctx.fillStyle="blue";
+            ctx.fillRect(x*map.scale, y*map.scale, map.scale, map.scale);
+          }
+          else{
+            ctx.fillStyle="gray";
+            ctx.fillRect(x*map.scale, y*map.scale, map.scale, map.scale);
+          }
+        }
+      }
+      //Draw player
+      ctx.fillStyle="red";
+      ctx.beginPath();
+      ctx.arc(xPos, yPos, player.size, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.closePath();
+    }
+  </script>
+</body>
+</html>
