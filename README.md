@@ -21,11 +21,11 @@ Future plan:\
 - Q: Move angle to left
 - E: Move angle to right
 
-###Version History
-####First Version
+### Version History
+#### First Version
 **15th April 2022**\
 Very first version, can render the rays perfectly but the shading is very basic, but the problem is the player speed is relative to the minimap size
-####Version 0.2
+#### Version 0.2
 **16th April 2022**\
 Changelog:
 - Improved shading by adjust the color darkness by depth
