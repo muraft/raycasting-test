@@ -210,9 +210,8 @@
       ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2)
       rays.forEach((ray,i)=>{
         let distance = Math.sqrt(Math.pow(ray[0]-xPos,2)+Math.pow(ray[1]-yPos,2))/10;
-        let percentage = Math.floor(distance*10/mapDistance*25);
-        //ctx.fillStyle=ray[2]=="right"?"blue":"darkblue";
-        ctx.fillStyle=ray[2]=="right"?"hsl(210, 100%, "+(50-percentage)+"%)":"hsl(210, 70%, "+(50-percentage)+"%)"
+        let percentage = distance*10/mapDistance*25;
+        ctx.fillStyle=ray[2]=="right"?"hsl(240, 100%, "+(50-percentage)+"%)":"hsl(240, 70%, "+(50-percentage)+"%)"
         ctx.fillRect(width*i,canvas.height/2-canvas.height/distance/2,width,canvas.height/distance);
       })
     }
