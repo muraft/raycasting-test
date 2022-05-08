@@ -6,7 +6,8 @@ This ray casting engine is poorly coded because this is my first ray casting eng
 Features:
 - Simple shading
 - Texture
-- Graphic setting\
+- Graphic setting
+
 Cons:
 - Very complicated code
 - Low performance
