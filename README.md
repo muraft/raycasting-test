@@ -7,7 +7,7 @@ features:
 - Basic shading (Depth darkness)
 More feature is coming soon\
 problems:
--Player can move through wall
+- Player can move through wall
 Future plan:\
 - Graphic setting
 - Collision detector on the player movement
