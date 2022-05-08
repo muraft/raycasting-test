@@ -6,17 +6,35 @@
   <title>Raycast Engine Test</title>
 
   <style type="text/css">
-    *{
-      margin: 0px;
-      padding: 0px;
-    }
     body{
       overflow: hidden;
     }
+    canvas{
+      width: 1200px;
+      height: 560px;
+      border: 1px solid black;
+    }
+    #setting{
+      font-size: 20px;
+      border: 1px solid black;
+    }
   </style>
 </head>
-<body>
-  <canvas id="screen" width="100%" height="100%"></canvas>
+<body align="center">
+  <canvas id="canvas"></canvas>
+  <div id="setting">
+    <h3>Graphic Setting</h3>
+    <input type="checkbox" id="depth">Depth</input>
+    <br>
+    <input type="checkbox" id="texture">Texture</input>
+    <br>
+    FOV <input type="range" id="fov" min="2" max="90" value="45">
+    <br>
+    Total ray <input type="range" id="rays" min="10" max="600" value="300">
+    <br>
+    Ray step <input type="range" id="rayStep" min="5" max="200" value="5">
+  </div>
+
 
   <script type="text/javascript">
     const button = {
@@ -73,14 +91,14 @@
       }
     }
 
-    const canvas = document.getElementById("screen");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    window.onresize = () =>{
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
+    const canvas = document.getElementById("canvas");
+    canvas.width=1200;
+    canvas.height=600;
     const ctx = canvas.getContext("2d");
+
+    // source https://www.artstation.com/artwork/3dVnEJ
+    let brick = new Image();
+    brick.src = "brick.jpg";
 
     const MINIMAP_SIZE=100;
     const map={
@@ -92,10 +110,10 @@
              1,0,0,1,1,0,0,0,0,1,
              1,0,0,0,1,0,0,0,0,1,
              1,0,0,0,0,1,0,0,0,1,
-             1,0,0,0,0,0,0,1,0,1,
-             1,1,0,0,0,0,0,0,0,1,
+             1,0,1,0,0,0,0,1,0,1,
+             1,0,1,0,0,0,0,0,0,1,
              1,1,1,1,1,1,1,1,1,1],
-      cellSize: 10
+      cellSize: 5
     }
 
     function toIndex(x,y){
@@ -109,38 +127,52 @@
       x: 1,
       y: 1,
       size: 0.2*map.cellSize,
-      angle: toRadian(90),
-      speed: 0.1
+      angle: toRadian(45),
+      speed: 0.05
+    }
+    player.moveX=function(stepX){
+      let playerSize=stepX>0?player.size/6:-player.size/6
+      if(map.data[toIndex(Math.floor(this.x+stepX+playerSize),Math.floor(this.y+playerSize))]==0){
+        this.x+=stepX
+      }
+    }
+    player.moveY=function(stepY){
+      let playerSize=stepY>0?player.size/6:-player.size/6
+      if(map.data[toIndex(Math.floor(this.x+playerSize),Math.floor(this.y+stepY+playerSize))]==0){
+        this.y+=stepY
+      }
     }
     const graphic={
       rays: 300,
       fov: toRadian(45),
-      rayStep: 0.1
+      rayStep: 0.05,
+      texture: false,
+      depth: false,
     }
     player.control=()=>{
       if(button.left){
-        let incrementX=player.speed*Math.cos(player.angle-toRadian(90));
-        let incrementY=player.speed*Math.sin(player.angle-toRadian(90));
-        player.x+=incrementX;
-        player.y+=incrementY;
+        let stepX=player.speed*Math.cos(player.angle-toRadian(90));
+        let stepY=player.speed*Math.sin(player.angle-toRadian(90));
+        player.moveX(stepX);
+        player.moveY(stepY);
       }
       if(button.up){
-        let incrementX=player.speed*Math.cos(player.angle);
-        let incrementY=player.speed*Math.sin(player.angle);
-        player.x+=incrementX;
-        player.y+=incrementY;
+        let stepX=player.speed*Math.cos(player.angle);
+        let stepY=player.speed*Math.sin(player.angle);
+        player.moveX(stepX);
+        player.moveY(stepY);
       }
       if(button.right){
-        let incrementX=player.speed*Math.cos(player.angle+toRadian(90));
-        let incrementY=player.speed*Math.sin(player.angle+toRadian(90));
-        player.x+=incrementX;
-        player.y+=incrementY;
+        let stepX=player.speed*Math.cos(player.angle+toRadian(90));
+        let stepY=player.speed*Math.sin(player.angle+toRadian(90));
+        player.moveX(stepX);
+        player.moveY(stepY);
       }
       if(button.down){
-        let incrementX=player.speed*Math.cos(player.angle);
-        let incrementY=player.speed*Math.sin(player.angle);
-        player.x-=incrementX;
-        player.y-=incrementY;
+        let stepX=player.speed*Math.cos(player.angle);
+        let stepY=player.speed*Math.sin(player.angle);
+        player.moveX(-stepX);
+        player.moveY(-stepY);
       }
       if(button.faceLeft)player.angle-=toRadian(1);
       if(button.faceRight)player.angle+=toRadian(1);
@@ -159,28 +191,38 @@
         lt = t
         fps = Math.round(1/dt);
 
-        xPos = player.x*map.cellSize+player.size;
-        yPos = player.y*map.cellSize+player.size;
+        xPos = player.x*map.cellSize;
+        yPos = player.y*map.cellSize;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        setGraphic();
 
         player.control();
         rays=castRay();
         render3d(rays);
-        drawMinimap(0,0,1,rays);
+        drawMinimap(rays,0,0,5);
 
-        ctx.fillStyle="black";
+        ctx.fillStyle="white";
         ctx.font = "30px Arial";
         ctx.fillText(fps+" FPS", canvas.width/2, 30);
     }
-    requestAnimationFrame(gameLoop);
+    window.onload=()=>{requestAnimationFrame(gameLoop)}
+
+    function setGraphic(){
+      graphic.texture=document.getElementById("texture").checked;
+      graphic.depth=document.getElementById("depth").checked;
+      graphic.fov=toRadian(document.getElementById("fov").value);
+      graphic.rays=document.getElementById("rays").value;
+      graphic.rayStep=document.getElementById("rayStep").value/100;
+    }
 
     function castRay(){
       let currentAngle=player.angle-graphic.fov/2;
       let angleIncrement = graphic.fov/graphic.rays;
       let rays=[];
+      let count=0;
 
-      while(currentAngle<player.angle+graphic.fov)
+      while(count<graphic.rays)
       {
         let rayEndX=xPos;
         let rayEndY=yPos;
@@ -190,33 +232,66 @@
           let stepY=graphic.rayStep*Math.sin(currentAngle);
           if(map.data[toIndex(Math.floor((rayEndX+stepX)/map.cellSize),Math.floor(rayEndY/map.cellSize))]==1){
             hit=true;
-            rays.push([rayEndX,rayEndY,"right"]);
+            rays.push([rayEndX+stepX,rayEndY+stepY,"right",
+            (
+              (Math.abs(rayEndY)+Math.abs(stepY))/map.cellSize
+            -Math.floor((Math.abs(rayEndY)+Math.abs(stepY))/map.cellSize)
+            )]);
+
           }
           if(map.data[toIndex(Math.floor((rayEndX)/map.cellSize),Math.floor((rayEndY+stepY)/map.cellSize))]==1){
             hit=true;
-            rays.push([rayEndX,rayEndY,"left"]);
+            rays.push([rayEndX+stepX,rayEndY+stepY,"left",
+            (
+              (Math.abs(rayEndX)+Math.abs(stepX))/map.cellSize
+            -Math.floor((Math.abs(rayEndX)+Math.abs(stepX))/map.cellSize)
+            )]);
           }
           rayEndX+=stepX;
           rayEndY+=stepY;
         }
         currentAngle+=angleIncrement;
+        count++
       }
       return rays;
     }
 
     function render3d(rays){
-      let width=Math.ceil(canvas.width/rays.length);
+      let lineWidth=(canvas.width/graphic.rays);
+      console.log(rays.length+1)
+      ctx.fillStyle="skyblue";
+      ctx.fillRect(0,0,canvas.width,canvas.height)
       ctx.fillStyle="gray";
       ctx.fillRect(0,canvas.height/2,canvas.width,canvas.height/2)
       rays.forEach((ray,i)=>{
         let distance = Math.sqrt(Math.pow(ray[0]-xPos,2)+Math.pow(ray[1]-yPos,2))/10;
-        let percentage = distance*10/mapDistance*25;
-        ctx.fillStyle=ray[2]=="right"?"hsl(240, 100%, "+(50-percentage)+"%)":"hsl(240, 70%, "+(50-percentage)+"%)"
-        ctx.fillRect(width*i,canvas.height/2-canvas.height/distance/2,width,canvas.height/distance);
+        if(distance==0)distance=0.1;
+        let decimal = distance*10/mapDistance;
+        let lineX=lineWidth*i, lineY=canvas.height/2-canvas.height/distance/2, lineHeight=canvas.height/distance;
+
+        if(graphic.texture){
+          let start=ray[3]*brick.width;
+          console.log(ray[3]);
+          ctx.drawImage(brick,start,0,lineWidth/brick.width,brick.height,lineX,lineY,lineWidth,lineHeight)
+          if(graphic.depth){
+            ctx.fillStyle=ray[2]=="right"?"rgba(65,65,65,"+(decimal*50)+"%)":"rgba(0,0,0,"+(decimal*50)+"%)"
+            ctx.fillRect(lineX,lineY,lineWidth,lineHeight)
+          }
+        }
+        else{
+          ctx.fillStyle=graphic.depth?
+          (ray[2]=="right"?"hsl(240, 100%, "+(50-decimal*25)+"%)":"hsl(240, 70%, "+(50-decimal*25)+"%)"):
+          (ray[2]=="right"?"hsl(240, 100%, 50%)":"hsl(240, 70%, 50%)")
+          ctx.fillRect(lineX,lineY,lineWidth,lineHeight)
+        }
       })
     }
 
-    function drawMinimap(offsetX,offsetY,scale,rays){
+    function drawMinimap(rays,offsetX=0,offsetY=0,scale=1){
+      let borderWidth=1
+      ctx.fillStyle = "black";
+      ctx.fillRect(offsetX,offsetY,scale*map.cellSize*map.size+borderWidth,scale*map.cellSize*map.size+borderWidth)
+
       //Render map
       for(let x=0;x<map.size;x++){
         for(let y=0;y<map.size;y++){
@@ -241,13 +316,13 @@
         ctx.stroke();
         ctx.closePath();
       })
+
       //Draw player
       ctx.fillStyle="red";
       ctx.beginPath();
       ctx.arc(offsetX+xPos*scale, offsetY+yPos*scale, player.size*scale, 0, 2 * Math.PI);
       ctx.fill();
       ctx.closePath();
-
     }
   </script>
 </body>
