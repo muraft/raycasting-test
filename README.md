@@ -1,7 +1,8 @@
-Ray casting is one of a 3d rendering method, this method used by many old 3d games like Doom, Wolfenstein 3d, etc.\
+Ray casting is one of 3d rendering method, this method used by many old 3d games like Doom, Wolfenstein 3d, etc.\
 Visit https://en.wikipedia.org/wiki/Ray_casting to learn more about it.
 
 ## My Ray Casting Project 
+![screenshoot](screenshoot.jpg)
 This ray casting engine is poorly coded because this is my first ray casting engine. Made with no framework or library, but pure html5 canvas and javascript\
 Features:
 - Simple shading
