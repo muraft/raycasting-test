@@ -4,6 +4,7 @@ Visit https://en.wikipedia.org/wiki/Ray_casting to learn more about it.
 ## My Ray Casting Project 
 ![screenshoot](screenshoot.jpg)
 This ray casting engine is poorly coded because this is my first ray casting engine. Made with no framework or library, but pure html5 canvas and javascript\
+Try the demo here: https://muraft.github.io/raycasting-test
 Features:
 - Simple shading
 - Texture
