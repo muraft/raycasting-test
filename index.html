@@ -8,31 +8,48 @@
   <style type="text/css">
     body{
       overflow: hidden;
+      user-select: none;
     }
     canvas{
-      width: 1200px;
-      height: 560px;
+      width: 100%;
+      aspect-ratio: 15:7;
       border: 1px solid black;
     }
     #setting{
       font-size: 20px;
       border: 1px solid black;
+      padding: 5px;
+    }
+    #controller{
+      width: 100%;
+      padding-top: 10px;
+    }
+    #controller button{
+      width:30%;
+      height: 50px;
+      border: 1px solid black;
+      font-size: 20px;
+      margin: 2px;
     }
   </style>
 </head>
 <body align="center">
+  <h1>Ray-casting Test</h1>
   <canvas id="canvas"></canvas>
-  <div id="setting">
-    <h3>Graphic Setting</h3>
-    <input type="checkbox" id="depth">Depth</input>
+  <div id="setting" align="left">
+    <input type="checkbox" id="fps">Show fps</input>
     <br>
-    <input type="checkbox" id="texture">Texture</input>
+    <input type="checkbox" id="minimap">Minimap</input> (Reduce fps)
     <br>
-    FOV <input type="range" id="fov" min="2" max="90" value="45">
+    <input type="checkbox" id="depth">Depth</input> (Reduce fps)
     <br>
-    Total ray <input type="range" id="rays" min="10" max="600" value="300">
+    <input type="checkbox" id="texture">Texture</input> (Reduce fps)
     <br>
-    Ray step <input type="range" id="rayStep" min="5" max="200" value="5">
+    FOV <input type="range" id="fov" min="2" max="90" value="45"> (Reduce fps)
+    <br>
+    Total ray <input type="range" id="rays" min="10" max="600" value="300"> (Reduce fps)
+    <br>
+    Ray step <input type="range" id="rayStep" min="5" max="200" value="5"> (Improve fps)
   </div>
 
 
@@ -45,7 +62,33 @@
       faceLeft: false,
       faceRight: false
     }
-
+  </script>
+  <div id="controller">
+    Move with WASD if you are using keyboard
+    <br>
+    <button ontouchstart="button.faceLeft=true" ontouchend="button.faceLeft=false">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/>
+        <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/>
+      </svg>
+    </button>
+    <button ontouchstart="button.up=true" ontouchend="button.up=false">&uArr;</button>
+    <button ontouchstart="button.faceRight=true" ontouchend="button.faceRight=false">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+      </svg>
+    </button>
+    <br>
+    <button ontouchstart="button.left=true" ontouchend="button.left=false">&lArr;</button>
+    <button>&#9711;</button>
+    <button ontouchstart="button.right=true" ontouchend="button.right=false">&rArr;</button>
+    <br>
+    <button>X</button>
+    <button ontouchstart="button.down=true" ontouchend="button.down=false">&dArr;</button>
+    <button>X</button>
+  </div>
+  <script>
     window.onkeydown=(e) => {
       switch (e.keyCode) {
         case 65: //A
@@ -115,6 +158,24 @@
              1,1,1,1,1,1,1,1,1,1],
       cellSize: 5
     }
+    const graphic={
+      rays: 300,
+      fov: toRadian(45),
+      rayStep: 0.05,
+      texture: false,
+      depth: false,
+      minimap: true,
+      fps: true
+    }
+    function setGraphic(){
+      graphic.fps=document.getElementById("fps").checked;
+      graphic.minimap=document.getElementById("minimap").checked;
+      graphic.texture=document.getElementById("texture").checked;
+      graphic.depth=document.getElementById("depth").checked;
+      graphic.fov=toRadian(document.getElementById("fov").value);
+      graphic.rays=document.getElementById("rays").value;
+      graphic.rayStep=document.getElementById("rayStep").value/100;
+    }
 
     function toIndex(x,y){
       return y*map.size + x;
@@ -142,17 +203,12 @@
         this.y+=stepY
       }
     }
-    const graphic={
-      rays: 300,
-      fov: toRadian(45),
-      rayStep: 0.05,
-      texture: false,
-      depth: false,
-    }
+    
     player.control=()=>{
       if(button.left){
-        let stepX=player.speed*Math.cos(player.angle-toRadian(90));
-        let stepY=player.speed*Math.sin(player.angle-toRadian(90));
+        let degree = player.angle-toRadian(90);
+        let stepX=player.speed*Math.cos(degree);
+        let stepY=player.speed*Math.sin(degree);
         player.moveX(stepX);
         player.moveY(stepY);
       }
@@ -163,8 +219,9 @@
         player.moveY(stepY);
       }
       if(button.right){
-        let stepX=player.speed*Math.cos(player.angle+toRadian(90));
-        let stepY=player.speed*Math.sin(player.angle+toRadian(90));
+        let degree = player.angle+toRadian(90);
+        let stepX=player.speed*Math.cos(degree);
+        let stepY=player.speed*Math.sin(degree);
         player.moveX(stepX);
         player.moveY(stepY);
       }
@@ -187,9 +244,11 @@
     function gameLoop(t)
     {
       requestAnimationFrame(gameLoop);
+      if(graphic.fps){
         dt = (t - lt) / 1000;
         lt = t
         fps = Math.round(1/dt);
+      }
 
         xPos = player.x*map.cellSize;
         yPos = player.y*map.cellSize;
@@ -200,21 +259,16 @@
         player.control();
         rays=castRay();
         render3d(rays);
-        drawMinimap(rays,0,0,5);
-
+        if(graphic.minimap)drawMinimap(rays,0,0,5);
+        
+        if(graphic.fps){
         ctx.fillStyle="white";
         ctx.font = "30px Arial";
         ctx.fillText(fps+" FPS", canvas.width/2, 30);
+        }
     }
     window.onload=()=>{requestAnimationFrame(gameLoop)}
 
-    function setGraphic(){
-      graphic.texture=document.getElementById("texture").checked;
-      graphic.depth=document.getElementById("depth").checked;
-      graphic.fov=toRadian(document.getElementById("fov").value);
-      graphic.rays=document.getElementById("rays").value;
-      graphic.rayStep=document.getElementById("rayStep").value/100;
-    }
 
     function castRay(){
       let currentAngle=player.angle-graphic.fov/2;
@@ -233,19 +287,17 @@
           if(map.data[toIndex(Math.floor((rayEndX+stepX)/map.cellSize),Math.floor(rayEndY/map.cellSize))]==1){
             hit=true;
             rays.push([rayEndX+stepX,rayEndY+stepY,"right",
-            (
+            graphic.texture?(
               (Math.abs(rayEndY)+Math.abs(stepY))/map.cellSize
             -Math.floor((Math.abs(rayEndY)+Math.abs(stepY))/map.cellSize)
-            )]);
-
+            ):null]);
           }
           if(map.data[toIndex(Math.floor((rayEndX)/map.cellSize),Math.floor((rayEndY+stepY)/map.cellSize))]==1){
             hit=true;
             rays.push([rayEndX+stepX,rayEndY+stepY,"left",
-            (
-              (Math.abs(rayEndX)+Math.abs(stepX))/map.cellSize
+              graphic.texture?((Math.abs(rayEndX)+Math.abs(stepX))/map.cellSize
             -Math.floor((Math.abs(rayEndX)+Math.abs(stepX))/map.cellSize)
-            )]);
+            ):null]);
           }
           rayEndX+=stepX;
           rayEndY+=stepY;
@@ -274,13 +326,15 @@
           console.log(ray[3]);
           ctx.drawImage(brick,start,0,lineWidth/brick.width,brick.height,lineX,lineY,lineWidth,lineHeight)
           if(graphic.depth){
-            ctx.fillStyle=ray[2]=="right"?"rgba(65,65,65,"+(decimal*50)+"%)":"rgba(0,0,0,"+(decimal*50)+"%)"
+            decimal*=50;
+            ctx.fillStyle=ray[2]=="right"?"rgba(65,65,65,"+decimal+"%)":"rgba(0,0,0,"+decimal+"%)"
             ctx.fillRect(lineX,lineY,lineWidth,lineHeight)
           }
         }
         else{
+          decimal=50-decimal*25;
           ctx.fillStyle=graphic.depth?
-          (ray[2]=="right"?"hsl(240, 100%, "+(50-decimal*25)+"%)":"hsl(240, 70%, "+(50-decimal*25)+"%)"):
+          (ray[2]=="right"?"hsl(240, 100%, "+decimal+"%)":"hsl(240, 70%, "+decimal+"%)"):
           (ray[2]=="right"?"hsl(240, 100%, 50%)":"hsl(240, 70%, 50%)")
           ctx.fillRect(lineX,lineY,lineWidth,lineHeight)
         }
