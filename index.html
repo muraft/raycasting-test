@@ -311,7 +311,6 @@
 
     function render3d(rays){
       let lineWidth=(canvas.width/graphic.rays);
-      console.log(rays.length+1)
       ctx.fillStyle="skyblue";
       ctx.fillRect(0,0,canvas.width,canvas.height)
       ctx.fillStyle="gray";
@@ -324,7 +323,6 @@
 
         if(graphic.texture){
           let start=ray[3]*brick.width;
-          console.log(ray[3]);
           ctx.drawImage(brick,start,0,lineWidth/brick.width,brick.height,lineX,lineY,lineWidth,lineHeight)
           if(graphic.depth){
             decimal*=50;
