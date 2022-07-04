@@ -11,7 +11,6 @@ Features:
 - Graphic setting
 
 Cons:
-- Very complicated code
 - Low performance
 
 ### Controls:
