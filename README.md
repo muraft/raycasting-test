@@ -1,5 +1,5 @@
 Ray casting is one of 3d rendering method, this method used by many old 3d games like Doom, Wolfenstein 3d, etc.\
-Visit https://youtu.be/g8p7nAbDz6Y to learn more about it.
+Visit [here](https://youtu.be/g8p7nAbDz6Y) (the video isn't mine) to learn more about it.
 
 ## My Ray Casting Project 
 ![screenshoot](screenshoot.jpg)
