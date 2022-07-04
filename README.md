@@ -38,7 +38,7 @@ Changelog:
 **08th May 2022**\
 Changelog:
 - Code refactor
-- Added texture
+- Added texture, source: https://www.artstation.com/artwork/3dVnEJ
 - Added collision detector to player
 - Added graphic setting
 
